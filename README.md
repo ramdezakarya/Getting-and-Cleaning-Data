@@ -7,21 +7,26 @@ Course project object are describing below. The principal goal is to prepare a t
 For the project, it consist of study of Human Activity Recognition Using Smartphones Data Set. As he is seen on website, 30 selected subjects within an age bracket of 19-48 years performing activities of daily living while carrying a waist-mounted smartphone with embedded inertial sensors.
 Project data is find here https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip.
 
-We loaded via the link the zip data before unzip it with all files on it. So, as recommended, i load train and test datasets ".txt" and adding txo columns with the y file and the subject. 
+We loaded via the link the zip data before unzip it with all files on it. So, as recommended, we load train and test datasets ".txt" and adding two columns with the y file and the subject. 
+So for eqch test and train data set, we create one database contain the X file plus the y file (activities numbers) and the subject file.
+
+To another step, we merge the test and train dataset.
 We also read the activity labels which are 6 and features of given data. 
-So that, after for the gsub fonction, we replace "mean" BY "Mean" and delete names withe "-()" on their writing.
-After that, with cbind(), we merge the two datasets (train and test) to get one named dataset. 
+
 
 ###Extracts only the measurements on the mean and standard deviation for each measurement
 
-With grep function, we selected only variables with Mean and Std on theirs labels and create a new dataset.
-After, the column names are add to the global dataset. 
+With grep function, we selected separately only variables with mean and std on theirs labels which are put on two news dataset. After that, i merge the two dataset to get one. 
 
 ### Tidy Data
 
-And atteining this step, tidy data is done by adding the average of each variable for the determine activity and its subject. 
+We add columns names with features data previously loaded and try to replace by the "for" and "if" functions,
+tidydata Activities (which are numbers 1 to 6) by theirs labels (WALKING, WALKING_UPSTAIRS, WALKING_DONSTAIRS, 
+SITTING, STANDING and LAYING).
 
-We create the final dataset in text format in our workong directory. 
+And atteining this step, tidy data is done by adding the average of each variable for the determine activity and its subject by aggregate function.
+
+We create the final dataset in text format in our workong directory with the write.table fucntion.
 
 ### Course project lines 
 
