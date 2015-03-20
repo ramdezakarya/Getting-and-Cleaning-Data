@@ -1,55 +1,66 @@
-# Load X_test dataset containing values
-dataTest<- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/test/X_test.txt",sep="", header=FALSE)
+dataTestX <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/test/X_test.txt",sep="", header=FALSE)
+dataTestA <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/test/y_test.txt",sep="", header=FALSE)
+dataTestS <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/test/subject_test.txt",sep="", header=FALSE)
+dataTest <-cbind(dataTestX,dataTestA,dataTestS)
+head(dataTest)
 
-#Load y_test and Subject_test containing activity values and subject values 
-dataTest[,562] <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/test/y_test.txt",sep="", header=FALSE)
-dataTest[,563] <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/test/subject_test.txt",sep="", header=FALSE)
+dataTrainX <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/train/X_train.txt",sep="", header=FALSE)
+dataTrainA <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/train/y_train.txt",sep="", header=FALSE)
+dataTrainS <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/train/subject_train.txt",sep="", header=FALSE)
+dataTrain <-cbind(dataTrainX,dataTrainA,dataTrainS)
+head(dataTrain)
 
-# Load X_train dataset containing values 
-dataTrain <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/train/X_train.txt",sep="", header=FALSE)
+features <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/features.txt",sep="", header=FALSE)
 
-# Load y_train and Subject containing activity and subject values 
-dataTrain[,562] <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/train/y_train.txt",sep="", header=FALSE)
-dataTrain[,563] <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/train/subject_train.txt",sep="", header=FALSE)
+#Merge Test and train data
+Data <- rbind(dataTest,dataTrain)
 
-#Load activity labels
-activityLabels <- read.table("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/activity_labels.txt",sep="", header=FALSE)
+#Extracts only measurements of means and std for each measurement
+dataMeans <- grep('mean()', features[,2])
+dataStd <- grep('std()', features[,2])
 
-#Load features and try to select those containing mean or std with gsub function
-features <- read.csv("C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/features.txt",sep="", header=FALSE)
-features[,2] = gsub('-mean', 'Mean', features[,2])
-features[,2] = gsub('-std', 'Std', features[,2])
-features[,2] = gsub('[-()]', '', features[,2])
+#columns with mean and Std on it 
+featuresMeans <- features[dataMeans,]
+featuresStd <- features[dataStd,]
 
-#Merge of training and test data sets
-dataset <- rbind(dataTest,dataTrain)
+#Merge features labels with means and std 
+featuresT <-rbind(featuresMeans,featuresStd)
 
-# Extracts only the measurements on the mean and standard deviation for each measurement
-colsDesire <- grep(".*Mean.*|.*Std.*", features[,2])
-features <- features[colsDesire,]
+#Appropriately labels the data set with descriptive variable names
+featuresN <-c(featuresT$V1, c(562,563))
+tidydata <-Data[,featuresN]
+o <- features[featuresT$V1,]
 
-colsDesire <- c(colsDesire, 562, 563)
-dataset <- dataset[,colsDesire]
+colnames(tidydata) <- c(as.character(o$V2), "Activity", "Subject")
 
-# Add the column names (features) to dataset
-datasetColNames <- c(features$V2, "Activity", "Subject")
-datasetColNames <- tolower(colnames(dataset))
-
-Activity <- 1
-for (ActivityLabel in activityLabels$V2) {
-        dataset$Activity <- gsub(Activity, ActivityLabel, dataset$Activity)
-        Activity <- Activity + 1
+#Uses descriptive activity names to name the activities in the data set
+for (i in 1:10299) {
+        if (tidydata$Activity[i]==1){
+                tidydata$Activity[i]="WALKING"
+        }
+        if (tidydata$Activity[i]==2){
+                tidydata$Activity[i]="WALKING_UPSTAIRS"
+        }
+        if (tidydata$Activity[i]==3) {
+                tidydata$Activity[i]="WALKING_DOWNSTAIRS"
+        }
+        if (tidydata$Activity[i]==4) {
+                tidydata$Activity[i]="SITTING"
+        }
+        if (tidydata$Activity[i]==5) {
+                tidydata$Activity[i]="STANDING"
+        }
+        if (tidydata$Activity[i]==6) {
+                tidydata$Activity[i]="LAYING"
+        }
 }
 
-dataset$Activity <- as.factor(dataset$Activity)
-dataset$Subject  <- as.factor(dataset$Subject)
+# From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject
+tidy <-aggregate(tidydata, by=list(Activity=tidydata$Activity, Subject=tidydata$Subject), mean)
 
-# compute tidy data with merging dataset 
-tidy <- aggregate(dataset, by=list(Activity = dataset$Activity, Subject=dataset$Subject), mean)
+# Remove the last two columns
+tidy[,83] = NULL
+tidy[,82] = NULL
 
-#Remove NA columns
-tidy[,90] = NULL
-tidy[,89] = NULL
-
-#Write tidy.txt in working directory
-write.table(tidy, "C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/tidy.txt", row.names=FALSE)
+# Write tidy data into text format
+write.table(tidy,"C:/Users/zakarya.ramde/Desktop/Coursera/Data Scientist/Getting and cleaning data/Course Project/UCI HAR Dataset/Getting-and-Cleaning-Data/tidy.txt",row.names=FALSE)
